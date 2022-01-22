@@ -26,7 +26,7 @@ public class FileManager : MonoBehaviour
     {
         Instance = this;
     }
-
+    //加数据
     void AddByte(List<byte> testlis,string strr)
     {
         byte[] temp = Encoding.UTF8.GetBytes(strr);
@@ -35,7 +35,7 @@ public class FileManager : MonoBehaviour
             testlis.Add(temp[i]);
         }
     }
-
+    //保存数据
     public void SaveData(string name, string info)
     {
         byte[] bytes = Encoding.ASCII.GetBytes(info.ToCharArray());

@@ -23,7 +23,7 @@ public class SceneManager : MonoBehaviour
     //public Text answer;
     //data
     [HideInInspector]
-    public int thisGroup;
+    public int thisGroup; //0:A组，1B组
     public int currentRound = 0;//当前轮数
     public int deskRotateCount = 0; //桌子转动次数
     public int notdeskRotateCount = 0; //桌子转动次数
@@ -36,8 +36,8 @@ public class SceneManager : MonoBehaviour
     float checkTimer = 0;
     //int intTimer = 0;
     float rotaTimer = 0;
-    bool isDestRotate = false;
-    bool isChangeItem = false;
+    bool isDestRotate = false;//有没有发生转动
+    bool isChangeItem = false;//有没有物品交换位置
     List<int> itemIndex = new List<int>();
 
     private void Awake()
@@ -68,6 +68,7 @@ public class SceneManager : MonoBehaviour
         //TODO
         //newcamera.transform.RotateAround(cameraPos.transform.localPosition, cameraPos.transform.up, Time.deltaTime * 20);
 
+        //提示第几轮
         if (texthint2.transform.parent.gameObject.activeInHierarchy)
         {
             if (Input.anyKeyDown)
@@ -77,6 +78,7 @@ public class SceneManager : MonoBehaviour
             }
         }
 
+        //开始计时
         if (isTimer)
         {
             checkTimer += Time.deltaTime;
@@ -137,7 +139,7 @@ public class SceneManager : MonoBehaviour
                     texthint2.text = string.Format("Trial {0} of 60，Press any key to proceed", currentRound);
                     texthint2.transform.parent.gameObject.SetActive(true);
                 }
-               
+
             }
             if (Input.GetKeyDown(KeyCode.I))
             {
@@ -186,15 +188,17 @@ public class SceneManager : MonoBehaviour
                     //answer.gameObject.SetActive(true);
                     //Invoke("HideAnswer", 1f);
                 }
-              
+
             }
         }
+        //当桌子的物品消失后转相机
         if (itemTrans.activeInHierarchy == false)
         {
-            //if (isDestRotate)
-            //{
-                rotaTimer += Time.deltaTime;
-                if (rotaTimer < 3)
+            rotaTimer += Time.deltaTime;
+            if (rotaTimer < 3)
+            {
+                //B组转相机
+                if (thisGroup == 1)
                 {
                     if (rotateDir == -1)
                     {
@@ -204,10 +208,23 @@ public class SceneManager : MonoBehaviour
                     {
                         newcamera.transform.RotateAround(cameraPos.transform.position, cameraPos.transform.up, Time.deltaTime * 30);
                     }
-                }
-            //}  
-        }
 
+                }
+                //A组转相机
+                else
+                {
+                    if (rotaTimer < 1.5f)
+                    {
+                        newcamera.transform.RotateAround(cameraPos.transform.position, cameraPos.transform.up, -Time.deltaTime * 30);
+                    }
+                    else
+                    {
+                        newcamera.transform.RotateAround(cameraPos.transform.position, cameraPos.transform.up, Time.deltaTime * 30);
+                    }
+                }
+            }
+        }
+        //按任意按键去掉提示文本
         if (text1.transform.parent.gameObject.activeInHierarchy)
         {
             if (Input.anyKeyDown)
@@ -221,6 +238,7 @@ public class SceneManager : MonoBehaviour
     {
         //answer.gameObject.SetActive(false);
     }
+    //开始游戏
     public void StartGame()
     {
         if (input.text == "") { Hint(); return; }
@@ -236,13 +254,14 @@ public class SceneManager : MonoBehaviour
         //Invoke("HintText", 2f);
     }
 
+    //隐藏提示文本
     void HintText()
     {
         text1.transform.parent.gameObject.SetActive(false);
         texthint2.text = string.Format("Trial {0} of 60，Press any key to proceed", currentRound);
         texthint2.transform.parent.gameObject.SetActive(true);
     }
-
+    //随机开始角度
     void RandomCameraAngle()
     {
         if (thisGroup == 0)
@@ -259,10 +278,11 @@ public class SceneManager : MonoBehaviour
         newcamera.transform.RotateAround(cameraPos.transform.localPosition, cameraPos.transform.up, startAngle);
     }
 
+    //随机物品
     void RandomItem()
     {
         print("currentRound" + currentRound);
-        
+
         isDestRotate = false;
         isChangeItem = false;
         timeText.text = "0s";
@@ -286,14 +306,23 @@ public class SceneManager : MonoBehaviour
         {
             items[i].gameObject.SetActive(false);
         }
+        Vector3[] pos = new Vector3[5]; 
         for (int i = 0; i < indexs.Length; i++)
         {
             items[indexs[i]].gameObject.SetActive(true);
+            pos[i] = items[indexs[i]].transform.localPosition;
         }
+        items[indexs[0]].transform.localPosition = pos[4];
+        items[indexs[1]].transform.localPosition = pos[3];
+        items[indexs[2]].transform.localPosition = pos[0];
+        items[indexs[3]].transform.localPosition = pos[1];
+        items[indexs[4]].transform.localPosition = pos[2];
+        //随机开始角度
         RandomCameraAngle();
         Invoke("HideItem", 3f);
     }
 
+    //游戏开始后隐藏物品
     void HideItem()
     {
         itemTrans.SetActive(false);
@@ -303,6 +332,7 @@ public class SceneManager : MonoBehaviour
         Invoke("ShowItem", 3f);
     }
 
+    //显示物品
     void ShowItem()
     {
         itemTrans.SetActive(true);
@@ -323,6 +353,7 @@ public class SceneManager : MonoBehaviour
         itemTwo.transform.position = tempPos;
     }
 
+    //随机交换物品位置
     void RandomChangeItemPos()
     {
         if (currentRound > DataManager.totalRounds) return;
@@ -384,34 +415,9 @@ public class SceneManager : MonoBehaviour
                 }
             }
         }
-        //    //换物品位置的次数小于总轮数时，剩下的轮数都得换
-        //if ((DataManager.changeItemPosCount - changeItemCount) > 0 && (DataManager.changeItemPosCount - changeItemCount) >= (DataManager.totalRounds - currentRound))
-        //{
-        //    changeItemCount += 1;
-        //    isChangeItem = true;
-        //    print("改变物品位置");
-        //    // ChangeItemsPos(items[indexs[Random.Range(0, 2)]], items[indexs[Random.Range(2, indexs.Length)]]);
-        //}
-        //else
-        //{
-        //    int index = Random.Range(0, 2);
-        //    if (index == 0)
-        //    {
-        //        if (changeItemCount < DataManager.changeItemPosCount)
-        //        {
-        //            changeItemCount += 1;
-        //            isChangeItem = true;
-        //            print("改变物品位置");
-        //            //ChangeItemsPos(items[indexs[Random.Range(0, 2)]], items[indexs[Random.Range(2, indexs.Length)]]);
-        //        }
-        //    }
-        //    else
-        //    {
-        //        print("不改变物品位置");
-        //    }
-        //}
     }
 
+    //随机桌子转
     float rotateDir = 0;
     int indexxxx = 0;
     void RandomDeskRotate()

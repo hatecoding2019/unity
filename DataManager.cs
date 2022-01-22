@@ -66,6 +66,7 @@ public class DataManager : MonoBehaviour
 
     //------------------------unlit------------
 
+    //保存组别
     public static void SetGroup(int index)
     {
         groupIndex = index;
@@ -78,7 +79,7 @@ public class DataManager : MonoBehaviour
             groupName = "B";
         }
     }
-
+    //保存数据到txt 
     public static void SaveData()
     {
         print("notRotate_allTime" + notRotate_allTime);
@@ -115,7 +116,7 @@ public class DataManager : MonoBehaviour
 
         FileManager.Instance.SaveData(fileName, data);
     }
-
+    //从txt读数据
     public static void ResetData()
     {
         notRotate = 0;
